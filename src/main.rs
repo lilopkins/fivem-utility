@@ -35,6 +35,10 @@ fn main() {
     let resources_dir = matches.value_of("resources-dir").unwrap_or("resources");
 
     if let Some(_) = matches.subcommand_matches("print") {
+        let cfg = config::read_config_file(config_file).ok().unwrap_or_else(|| {
+            panic!("Failed to parse config file. Maybe run `verify` to check why?");
+        });
+        cfg.print_nicely();
     } else if let Some(_) = matches.subcommand_matches("verify") {
         let config_result = config::read_config_file(config_file);
         if config_result.is_ok() {

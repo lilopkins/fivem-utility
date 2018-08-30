@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Lily H <bsalarius@gmail.com>"]
 
 [dependencies]
-clap = "~2.32.0"
+clap = "2.32"
+colored = "1.6"

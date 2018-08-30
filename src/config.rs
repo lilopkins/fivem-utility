@@ -1,20 +1,129 @@
+extern crate colored;
+
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
+
+use self::colored::*;
 
 /// A struct containing *most* aspects of a FiveM server configuration file.
 /// Some values have been excluded as there are few applications for including them, however
 /// they can still be parsed manually.
 #[derive(Debug)]
 pub struct FivemConfig {
-    hostname: String,
-    resources: Vec<String>,
-    convars: HashMap<String, String>,
-    allow_scripthook: bool,
-    rcon_password: String,
-    licensekey: String,
-    server_icon: String,
-    max_clients: u16,
+    pub hostname: String,
+    pub resources: Vec<String>,
+    pub convars: HashMap<String, String>,
+    pub allow_scripthook: bool,
+    pub rcon_password: String,
+    pub licensekey: String,
+    pub server_icon: String,
+    pub max_clients: u16,
+}
+
+impl FivemConfig {
+    pub fn print_nicely(&self) {
+        let mut hostname = String::new();
+        let mut hostname_part = String::new();
+        let mut is_escaped = false;
+        let mut current_color = 0u8;
+        for c in self.hostname.chars() {
+            if c == '^' {
+                hostname.push_str(&format!("{}", match current_color {
+                    0 => hostname_part.white(),
+                    1 => hostname_part.red(),
+                    2 => hostname_part.green(),
+                    3 => hostname_part.yellow(),
+                    4 => hostname_part.blue(),
+                    5 => hostname_part.bright_blue(),
+                    6 => hostname_part.magenta(),
+                    _ => hostname_part.white(),
+                }));
+                hostname_part = String::new();
+                is_escaped = true;
+            } else if is_escaped {
+                current_color = c.to_string().parse::<u8>().unwrap_or_else(|_| {
+                    panic!("A colour in the hostname is invalid!");
+                });
+                is_escaped = false;
+            } else {
+                hostname_part.push(c);
+            }
+        }
+        hostname.push_str(&format!("{}", match current_color {
+            0 => hostname_part.white(),
+            1 => hostname_part.red(),
+            2 => hostname_part.green(),
+            3 => hostname_part.yellow(),
+            4 => hostname_part.blue(),
+            5 => hostname_part.bright_blue(),
+            6 => hostname_part.magenta(),
+            _ => hostname_part.white(),
+        }));
+
+        println!("{}: {}", "FiveM Server Configuration".underline(), hostname.italic());
+        println!("  {}:   {}", "Script Hook".bold(), match self.allow_scripthook {
+            true => "Allowed",
+            false => "Disabled"
+        });
+
+        let mut rcon_formatted = String::new();
+        if self.rcon_password.len() < 8 {
+            for _ in 0..self.rcon_password.len() {
+                rcon_formatted.push('*');
+            }
+        } else {
+            for _ in 0..(self.rcon_password.len() - 4) {
+                rcon_formatted.push('*');
+            }
+            rcon_formatted.push_str(&self.rcon_password[(self.rcon_password.len() - 4)..self.rcon_password.len()]);
+        }
+        println!("  {}: {}", "Rcon Password".bold(), rcon_formatted);
+
+        let mut lkey_formatted = String::new();
+        if self.licensekey.len() < 8 {
+            for _ in 0..self.licensekey.len() {
+                lkey_formatted.push('*');
+            }
+        } else {
+            for _ in 0..(self.licensekey.len() - 4) {
+                lkey_formatted.push('*');
+            }
+            lkey_formatted.push_str(&self.licensekey[(self.licensekey.len() - 4)..self.licensekey.len()]);
+        }
+        println!("  {}:   {}", "License Key".bold(), lkey_formatted);
+
+        println!("  {}:   {}", "Server Icon".bold(), self.server_icon);
+        println!("  {}:   {}", "Max Clients".bold(), self.max_clients);
+
+        if self.convars.len() > 0 {
+            println!("  {}:", "Convars".bold());
+            let mut i = 0;
+            let max = self.convars.keys().len();
+            for key in self.convars.keys() {
+                let val = &self.convars[key];
+                i = i + 1;
+                if max == i {
+                    println!("   └─ {} = {}", key, val);
+                } else {
+                    println!("   ├─ {} = {}", key, val);
+                }
+            }
+        }
+
+        if self.resources.len() > 0 {
+            println!("  {}:", "Resources".bold());
+            let max = self.resources.len();
+            for i in 0..max {
+                let val = &self.resources[i];
+                if max == (i + 1) {
+                    println!("   └─ {}", val);
+                } else {
+                    println!("   ├─ {}", val);
+                }
+            }
+        }
+    }
 }
 
 /// An internal function which takes a line from the config file and breaks it up into arguments,
@@ -71,6 +180,8 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
         } else if parts[0] == "sv_scriptHookAllowed" {
             if parts[1] == "1" {
                 config.allow_scripthook = true;
+            } else {
+                config.allow_scripthook = false;
             }
         } else if parts[0] == "rcon_password" {
             config.rcon_password = parts[1].clone();
