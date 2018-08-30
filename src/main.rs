@@ -57,8 +57,6 @@ fn main() {
                             .about("Checks the integrity of the config file."))
                     .subcommand(SubCommand::with_name("resource-usage")
                             .about("Finds resources specified in server.cfg, and lists resources that are never used."))
-                    .subcommand(SubCommand::with_name("git-update-check")
-                            .about("Checks addons which are git repositories for updates."))
                     .get_matches();
 
     let config_file = matches.value_of("config").unwrap_or("server.cfg");
@@ -93,8 +91,6 @@ fn main() {
         for key in resources.keys() {
             eprintln!("{} {} @ {}", "[  EXTRA  ]".yellow(), key.bold(), &resources[key]);
         }
-    } else if let Some(_) = matches.subcommand_matches("git-update-check") {
-        unimplemented!();
     } else {
         eprintln!("You must specify a subcommand. See --help for more information.");
         exit(1);
