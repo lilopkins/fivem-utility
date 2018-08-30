@@ -1,0 +1,7 @@
+[package]
+name = "fivem-utility"
+version = "0.1.0"
+authors = ["Lily H <bsalarius@gmail.com>"]
+
+[dependencies]
+clap = "~2.32.0"
