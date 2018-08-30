@@ -1,10 +1,40 @@
 extern crate clap;
+extern crate colored;
 
 use clap::{Arg, App, SubCommand};
+use colored::*;
 
+use std::fs;
 use std::process::exit;
+use std::collections::HashMap;
 
 pub mod config;
+
+/// A function to detect resources within a resources folder.
+pub fn detect_resources(resource_dir: &str) -> HashMap<String, String> {
+    let paths = fs::read_dir(resource_dir).unwrap();
+    let mut resources: HashMap<String, String> = HashMap::new();
+
+    for path in paths {
+        let entry = path.unwrap();
+        let meta = entry.metadata().unwrap();
+        if meta.is_dir() {
+            let name = entry.file_name().into_string().unwrap();
+            let file_path = entry.path().into_os_string().into_string().unwrap();
+            if name.starts_with("[") && name.ends_with("]") {
+                // recurse downwards
+                let sub_resources = detect_resources(&file_path);
+                for key in sub_resources.keys() {
+                    resources.insert(key.clone(), sub_resources[key].clone());
+                }
+            } else {
+                resources.insert(name, file_path);
+            }
+        }
+    }
+
+    resources
+}
 
 fn main() {
     let matches = App::new("fivem-utility")
@@ -52,8 +82,18 @@ fn main() {
         let cfg = config::read_config_file(config_file).ok().unwrap_or_else(|| {
             panic!("Failed to parse config file. Maybe run `verify` to check why?");
         });
-
-    } else if let Some(matches) = matches.subcommand_matches("git-update-check") {
+        let mut resources = detect_resources(resources_dir);
+        for res in cfg.resources {
+            let found = resources.remove(&res);
+            match found {
+                Some(val) => println!("{} {} @ {}", "[  FOUND  ]".green(), res.bold(), val),
+                None => eprintln!("{} {}", "[ MISSING ]".red(), res.bold()),
+            };
+        }
+        for key in resources.keys() {
+            eprintln!("{} {} @ {}", "[  EXTRA  ]".yellow(), key.bold(), &resources[key]);
+        }
+    } else if let Some(_) = matches.subcommand_matches("git-update-check") {
         unimplemented!();
     } else {
         eprintln!("You must specify a subcommand. See --help for more information.");
