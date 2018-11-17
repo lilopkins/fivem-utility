@@ -159,7 +159,10 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
     let mut file_contents = String::new();
 
     file.read_to_string(&mut file_contents).ok().expect("Failed to read main config file.");
-    let lines: Vec<String> = file_contents.split("\n").map(|s: &str| s.to_string()).collect();
+    let lines: Vec<String> = file_contents
+                                .replace("\r", "\n")   // Replace CR newlines with LF (extra blank lines don't matter)
+                                .split("\n")           // Split on newlines
+                                .map(|s: &str| s.to_string()).collect(); // Collect as Vec<String>
 
     for line in lines {
         if line.starts_with("#") {
