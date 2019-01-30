@@ -11,18 +11,28 @@ use self::colored::*;
 /// they can still be parsed manually.
 #[derive(Debug)]
 pub struct FivemConfig {
+    /// The hostname of the server.
     pub hostname: String,
+    /// A list of resources the server will **attempt** to use
     pub resources: Vec<String>,
+    /// A list of convars set in the config
     pub convars: HashMap<String, String>,
+    /// A list of convars replicated both server- and client-side
     pub convars_replicated: HashMap<String, String>,
+    /// Whether ScriptHook plugins are permitted by the server
     pub allow_scripthook: bool,
+    /// The RCON password used by the server
     pub rcon_password: String,
+    /// The license key used by the server
     pub licensekey: String,
+    /// The path (relative) for the icon used by the server
     pub server_icon: String,
+    /// The maximum number of clients permitted on the server
     pub max_clients: u16,
 }
 
 impl FivemConfig {
+    /// Prints the struct out in a nice format for terminals, using colors as well.
     pub fn print_nicely(&self) {
         let mut hostname = String::new();
         let mut hostname_part = String::new();
