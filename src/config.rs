@@ -14,6 +14,7 @@ pub struct FivemConfig {
     pub hostname: String,
     pub resources: Vec<String>,
     pub convars: HashMap<String, String>,
+    pub convars_replicated: HashMap<String, String>,
     pub allow_scripthook: bool,
     pub rcon_password: String,
     pub licensekey: String,
@@ -111,6 +112,21 @@ impl FivemConfig {
             }
         }
 
+        if self.convars_replicated.len() > 0 {
+            println!("  {}:", "Replicated Convars".bold());
+            let mut i = 0;
+            let max = self.convars_replicated.keys().len();
+            for key in self.convars_replicated.keys() {
+                let val = &self.convars_replicated[key];
+                i = i + 1;
+                if max == i {
+                    println!("   └─ {} = {}", key, val);
+                } else {
+                    println!("   ├─ {} = {}", key, val);
+                }
+            }
+        }
+
         if self.resources.len() > 0 {
             println!("  {}:", "Resources".bold());
             let max = self.resources.len();
@@ -180,6 +196,8 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
             config.resources.push(parts[1].clone());
         } else if parts[0] == "set" {
             config.convars.insert(parts[1].clone(), parts[2].clone());
+        } else if parts[0] == "setr" {
+            config.convars_replicated.insert(parts[1].clone(), parts[2].clone());
         } else if parts[0] == "sv_scriptHookAllowed" {
             if parts[1] == "1" {
                 config.allow_scripthook = true;
@@ -217,6 +235,7 @@ pub fn read_config_file<'a>(file_name: &'a str) -> Result<FivemConfig, &'static 
         hostname: String::new(),
         resources: Vec::new(),
         convars: HashMap::new(),
+        convars_replicated: HashMap::new(),
         allow_scripthook: true,
         rcon_password: String::new(),
         licensekey: String::new(),
