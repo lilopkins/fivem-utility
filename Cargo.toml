@@ -5,4 +5,6 @@ authors = ["Lily H <bsalarius@gmail.com>"]
 
 [dependencies]
 clap = "2.32"
-colored = "1.6"
+colored = "1.7.0"
+reqwest = "0.9.9"
+regex = "1.1.0"

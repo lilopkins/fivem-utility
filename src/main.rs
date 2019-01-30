@@ -1,5 +1,10 @@
 #![deny(missing_docs)]
 
+//! A crate of utility functions for FiveM, including function related to
+//! versioning and config management. The `config` module contains
+//! parsers for the `.cfg` files. The `artifacts` module contains functions
+//! to download a list of artifacts available from the artifact server.
+
 extern crate clap;
 extern crate colored;
 
@@ -10,7 +15,12 @@ use std::fs;
 use std::process::exit;
 use std::collections::HashMap;
 
+/// The config module contains functions for parsing and making sense of `.cfg`
+/// files that servers use to start.
 pub mod config;
+/// The artifacts module contains functions for fetching information about available
+/// artifacts from the artifact server.
+pub mod artifacts;
 
 /// A function to detect resources within a resources folder.
 pub fn detect_resources(resource_dir: &str) -> HashMap<String, String> {
@@ -59,6 +69,11 @@ fn main() {
                             .about("Checks the integrity of the config file."))
                     .subcommand(SubCommand::with_name("resource-usage")
                             .about("Finds resources specified in server.cfg, and lists resources that are never used."))
+                    .subcommand(SubCommand::with_name("version-server")
+                            .about("Gives information about the versions available from the FiveM version server")
+                            .arg(Arg::with_name("use-windows-server")
+                                .short("w")
+                                .help("Use the Windows artifact server (default's to the linux artifact server)")))
                     .get_matches();
 
     let config_file = matches.value_of("config").unwrap_or("server.cfg");
@@ -92,6 +107,19 @@ fn main() {
         }
         for key in resources.keys() {
             eprintln!("{} {} @ {}", "[  EXTRA  ]".yellow(), key.bold(), &resources[key]);
+        }
+    } else if let Some(matches) = matches.subcommand_matches("version-server") {
+        let mut url = "https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/";
+
+        if cfg!(target_os = "windows")
+            || matches.is_present("use-windows-server") {
+            
+            url = "https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/";
+        }
+
+        let afs = artifacts::get_artifacts(url.to_string());
+        for af in afs {
+            println!("{}\t{}", af.num, af.url);
         }
     } else {
         eprintln!("You must specify a subcommand. See --help for more information.");
