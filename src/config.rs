@@ -202,7 +202,8 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
 
         if parts[0] == "sv_hostname" {
             config.hostname = parts[1].clone();
-        } else if parts[0] == "start" {
+        } else if parts[0] == "start"
+          || parts[0] == "ensure" {
             config.resources.push(parts[1].clone());
         } else if parts[0] == "set" {
             config.convars.insert(parts[1].clone(), parts[2].clone());
