@@ -5,9 +5,6 @@
 //! parsers for the `.cfg` files. The `artifacts` module contains functions
 //! to download a list of artifacts available from the artifact server.
 
-extern crate clap;
-extern crate colored;
-
 use clap::{Arg, App, SubCommand};
 use colored::*;
 
@@ -51,7 +48,7 @@ pub fn detect_resources(resource_dir: &str) -> HashMap<String, String> {
 fn main() {
     let matches = App::new("fivem-utility")
                     .version(env!("CARGO_PKG_VERSION"))
-                    .author("Lily H <bsalarius@gmail.com>")
+                    .author(env!("CARGO_PKG_AUTHORS"))
                     .about("Provides various useful utilities for FiveM servers")
                     .arg(Arg::with_name("config")
                             .short("c")
@@ -71,8 +68,15 @@ fn main() {
                             .about("Finds resources specified in server.cfg, and lists resources that are never used."))
                     .subcommand(SubCommand::with_name("version-server")
                             .about("Gives information about the versions available from the FiveM version server")
+                            .arg(Arg::with_name("get-url")
+                                .short("g")
+                                .long("get-url")
+                                .help("Get the URL of a server download from the version server")
+                                .value_name("version number")
+                                .takes_value(true))
                             .arg(Arg::with_name("use-windows-server")
                                 .short("w")
+                                .long("use-windows-server")
                                 .help("Use the Windows artifact server (default's to the linux artifact server)")))
                     .get_matches();
 
@@ -109,17 +113,40 @@ fn main() {
             eprintln!("{} {} @ {}", "[  EXTRA  ]".yellow(), key.bold(), &resources[key]);
         }
     } else if let Some(matches) = matches.subcommand_matches("version-server") {
-        let mut url = "https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/";
-
-        if cfg!(target_os = "windows")
-            || matches.is_present("use-windows-server") {
-            
+        let url;
+        if matches.is_present("use-windows-server") {
             url = "https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/";
+        } else {
+            url = "https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/";
         }
 
-        let afs = artifacts::get_artifacts(url.to_string());
-        for af in afs {
-            println!("{}\t{}", af.num, af.url);
+        let mut art_serv = artifacts::ArtifactServer::new(url);
+
+        if matches.is_present("get-url") {
+            let for_version = matches.value_of("get-url").unwrap();
+            let ar;
+            if for_version.eq_ignore_ascii_case("latest") {
+                let latest_version = art_serv.get_latest_version_num();
+                ar = art_serv.get_artifact(latest_version);
+            } else {
+                let for_version: u16 = for_version.parse().unwrap_or_else(|_| {
+                    eprintln!("The version you specified is not valid!");
+                    exit(1);
+                });
+                ar = art_serv.get_artifact(for_version);
+            }
+
+            if let Some(ar) = ar {
+                println!("{}", ar.url);
+            } else {
+                eprintln!("The artifact you requested doesn't exist!");
+            }
+        } else {
+            let mut afs = art_serv.get_artifacts();
+            afs.sort();
+            for af in afs {
+                println!("{}\t{}", af.num, af.url);
+            }
         }
     } else {
         eprintln!("You must specify a subcommand. See --help for more information.");

@@ -1,10 +1,8 @@
-extern crate colored;
-
 use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 
-use self::colored::*;
+use colored::*;
 
 /// A struct containing *most* aspects of a FiveM server configuration file.
 /// Some values have been excluded as there are few applications for including them, however
