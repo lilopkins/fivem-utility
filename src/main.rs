@@ -137,7 +137,7 @@ fn main() {
             }
 
             if let Some(ar) = ar {
-                println!("{}", ar.url);
+                println!("{}\t{}", ar.num, ar.url);
             } else {
                 eprintln!("The artifact you requested doesn't exist!");
             }
