@@ -1,11 +1,11 @@
 [package]
 name = "fivem-utility"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Lily H <bsalarius@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-clap = "2.33.0"
+clap = "2.33.1"
 colored = "1.9.3"
 reqwest = { version = "0.10.4", features = ["blocking"] }
-regex = "1.3.4"
+regex = "1.3.7"
