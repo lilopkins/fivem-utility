@@ -204,9 +204,9 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
           || parts[0] == "ensure" {
             config.resources.push(parts[1].clone());
         } else if parts[0] == "set" {
-            config.convars.insert(parts[1].clone(), parts[2].clone());
+            config.convars.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
         } else if parts[0] == "setr" {
-            config.convars_replicated.insert(parts[1].clone(), parts[2].clone());
+            config.convars_replicated.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
         } else if parts[0] == "sv_scriptHookAllowed" {
             if parts[1] == "1" {
                 config.allow_scripthook = true;
