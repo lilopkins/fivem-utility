@@ -112,7 +112,6 @@ fn main() {
             panic!("Failed to parse config file. Maybe run `verify` to check why?");
         });
         let mut resources = detect_resources(resources_dir);
-        println!("{:#?}", resources);
         for res in cfg.resources {
             let found = resources.remove(&res);
             match found {
