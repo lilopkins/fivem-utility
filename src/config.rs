@@ -179,10 +179,10 @@ fn config_line_split(line: String) -> Vec<String> {
 
 /// An internal function which takes a file and parses it, saving data into a `FivemConfig` struct.
 fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static str> {
-    let mut file = File::open(file_name).ok().expect("Failed to open main config file.");
+    let mut file = File::open(file_name).expect("Failed to open main config file.");
     let mut file_contents = String::new();
 
-    file.read_to_string(&mut file_contents).ok().expect("Failed to read main config file.");
+    file.read_to_string(&mut file_contents).expect("Failed to read main config file.");
     let lines: Vec<String> = file_contents
                                 .replace("\r", "\n")   // Replace CR newlines with LF (extra blank lines don't matter)
                                 .split("\n")           // Split on newlines
@@ -202,8 +202,13 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
             "sv_hostname" => {
                 config.hostname = parts[1].clone();
             }
-            "start" | "ensure" => {
+            "start" => {
                 config.resources.push(parts[1].clone());
+            }
+            "ensure" => {
+                if !config.resources.contains(&parts[1].clone()) {
+                    config.resources.push(parts[1].clone());
+                }
             }
             "set" => {
                 config.convars.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
