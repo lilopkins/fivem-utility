@@ -39,6 +39,16 @@ pub fn detect_resources(resource_dir: &str) -> HashMap<String, String> {
             } else {
                 resources.insert(name, file_path);
             }
+        } else {
+            // Check if symlink
+            let poss_symlink = fs::metadata(entry.path()).unwrap();
+            if poss_symlink.is_dir() {
+                // Is symlink to dir
+                let sub_resources = detect_resources(&entry.path().to_str().unwrap().to_owned());
+                for key in sub_resources.keys() {
+                    resources.insert(key.clone(), sub_resources[key].clone());
+                }
+            }
         }
     }
 
@@ -102,6 +112,7 @@ fn main() {
             panic!("Failed to parse config file. Maybe run `verify` to check why?");
         });
         let mut resources = detect_resources(resources_dir);
+        println!("{:#?}", resources);
         for res in cfg.resources {
             let found = resources.remove(&res);
             match found {
