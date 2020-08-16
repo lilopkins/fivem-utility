@@ -198,39 +198,46 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
             continue;
         }
 
-        if parts[0] == "sv_hostname" {
-            config.hostname = parts[1].clone();
-        } else if parts[0] == "start"
-          || parts[0] == "ensure" {
-            config.resources.push(parts[1].clone());
-        } else if parts[0] == "set" {
-            config.convars.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
-        } else if parts[0] == "setr" {
-            config.convars_replicated.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
-        } else if parts[0] == "sv_scriptHookAllowed" {
-            if parts[1] == "1" {
-                config.allow_scripthook = true;
-            } else {
-                config.allow_scripthook = false;
+        match parts[0].as_str() {
+            "sv_hostname" => {
+                config.hostname = parts[1].clone();
             }
-        } else if parts[0] == "rcon_password" {
-            config.rcon_password = parts[1].clone();
-        } else if parts[0] == "sv_licenseKey" {
-            config.licensekey = parts[1].clone();
-        } else if parts[0] == "load_server_icon" {
-            config.server_icon = parts[1].clone();
-        } else if parts[0] == "sv_maxclients" {
-            let parse_res = parts[1].parse::<u16>();
-            if parse_res.is_ok() {
-                config.max_clients = parse_res.ok().unwrap();
-            } else {
-                return Err("Max clients is not a number!");
+            "start" | "ensure" => {
+                config.resources.push(parts[1].clone());
             }
-        } else if parts[0] == "exec" {
-            let result = parse_file(config, &parts[1]);
-            if result.is_err() {
-                return Err(result.err().unwrap());
+            "set" => {
+                config.convars.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
             }
+            "setr" => {
+                config.convars_replicated.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
+            }
+            "sv_scriptHookAllowed" => {
+                config.allow_scripthook = parts[1] == "1";
+            }
+            "rcon_password" => {
+                config.rcon_password = parts[1].clone();
+            }
+            "sv_licenseKey" => {
+                config.licensekey = parts[1].clone();
+            }
+            "load_server_icon" => {
+                config.server_icon = parts[1].clone();
+            }
+            "sv_maxclients" => {
+                let parse_res = parts[1].parse::<u16>();
+                if parse_res.is_ok() {
+                    config.max_clients = parse_res.ok().unwrap();
+                } else {
+                    return Err("Max clients is not a number!");
+                }
+            }
+            "exec" => {
+                let result = parse_file(config, &parts[1]);
+                if result.is_err() {
+                    return Err(result.err().unwrap());
+                }
+            }
+            _ => (),
         }
     }
 
@@ -252,11 +259,6 @@ pub fn read_config_file<'a>(file_name: &'a str) -> Result<FivemConfig, &'static 
         max_clients: 0,
     };
 
-    let parse_result = parse_file(&mut config, file_name);
-
-    if parse_result.is_err() {
-        return Err(parse_result.err().unwrap());
-    }
-
+    let _ = parse_file(&mut config, file_name)?;
     Ok(config)
 }

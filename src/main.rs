@@ -29,7 +29,7 @@ pub fn detect_resources(resource_dir: &str) -> HashMap<String, String> {
         let meta = entry.metadata().unwrap();
         if meta.is_dir() {
             let name = entry.file_name().into_string().unwrap();
-            let file_path = entry.path().into_os_string().into_string().unwrap();
+            let file_path = entry.path().to_str().unwrap().to_owned();
             if name.starts_with("[") && name.ends_with("]") {
                 // recurse downwards
                 let sub_resources = detect_resources(&file_path);
