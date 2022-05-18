@@ -100,7 +100,7 @@ impl<'a> ArtifactServer<'a> {
         }
         if let Some(body) = &self.body {
             let re = Regex::new(r"RECOMMENDED \((\d+)\)").unwrap();
-            
+
             for capture in re.captures_iter(&body) {
                 let num = (&capture[1]).parse::<u16>().unwrap();
                 self.latest = Some(num);

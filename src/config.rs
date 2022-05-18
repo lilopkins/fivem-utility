@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::collections::HashMap;
 
 use colored::*;
 
@@ -38,16 +38,19 @@ impl FivemConfig {
         let mut current_color = 0u8;
         for c in self.hostname.chars() {
             if c == '^' {
-                hostname.push_str(&format!("{}", match current_color {
-                    0 => hostname_part.white(),
-                    1 => hostname_part.red(),
-                    2 => hostname_part.green(),
-                    3 => hostname_part.yellow(),
-                    4 => hostname_part.blue(),
-                    5 => hostname_part.bright_blue(),
-                    6 => hostname_part.magenta(),
-                    _ => hostname_part.white(),
-                }));
+                hostname.push_str(&format!(
+                    "{}",
+                    match current_color {
+                        0 => hostname_part.white(),
+                        1 => hostname_part.red(),
+                        2 => hostname_part.green(),
+                        3 => hostname_part.yellow(),
+                        4 => hostname_part.blue(),
+                        5 => hostname_part.bright_blue(),
+                        6 => hostname_part.magenta(),
+                        _ => hostname_part.white(),
+                    }
+                ));
                 hostname_part = String::new();
                 is_escaped = true;
             } else if is_escaped {
@@ -59,22 +62,33 @@ impl FivemConfig {
                 hostname_part.push(c);
             }
         }
-        hostname.push_str(&format!("{}", match current_color {
-            0 => hostname_part.white(),
-            1 => hostname_part.red(),
-            2 => hostname_part.green(),
-            3 => hostname_part.yellow(),
-            4 => hostname_part.blue(),
-            5 => hostname_part.bright_blue(),
-            6 => hostname_part.magenta(),
-            _ => hostname_part.white(),
-        }));
+        hostname.push_str(&format!(
+            "{}",
+            match current_color {
+                0 => hostname_part.white(),
+                1 => hostname_part.red(),
+                2 => hostname_part.green(),
+                3 => hostname_part.yellow(),
+                4 => hostname_part.blue(),
+                5 => hostname_part.bright_blue(),
+                6 => hostname_part.magenta(),
+                _ => hostname_part.white(),
+            }
+        ));
 
-        println!("{}: {}", "FiveM Server Configuration".underline(), hostname.italic());
-        println!("  {}:   {}", "Script Hook".bold(), match self.allow_scripthook {
-            true => "Allowed",
-            false => "Disabled"
-        });
+        println!(
+            "{}: {}",
+            "FiveM Server Configuration".underline(),
+            hostname.italic()
+        );
+        println!(
+            "  {}:   {}",
+            "Script Hook".bold(),
+            match self.allow_scripthook {
+                true => "Allowed",
+                false => "Disabled",
+            }
+        );
 
         let mut rcon_formatted = String::new();
         if self.rcon_password.len() < 8 {
@@ -85,7 +99,9 @@ impl FivemConfig {
             for _ in 0..(self.rcon_password.len() - 4) {
                 rcon_formatted.push('*');
             }
-            rcon_formatted.push_str(&self.rcon_password[(self.rcon_password.len() - 4)..self.rcon_password.len()]);
+            rcon_formatted.push_str(
+                &self.rcon_password[(self.rcon_password.len() - 4)..self.rcon_password.len()],
+            );
         }
         println!("  {}: {}", "Rcon Password".bold(), rcon_formatted);
 
@@ -98,7 +114,8 @@ impl FivemConfig {
             for _ in 0..(self.licensekey.len() - 4) {
                 lkey_formatted.push('*');
             }
-            lkey_formatted.push_str(&self.licensekey[(self.licensekey.len() - 4)..self.licensekey.len()]);
+            lkey_formatted
+                .push_str(&self.licensekey[(self.licensekey.len() - 4)..self.licensekey.len()]);
         }
         println!("  {}:   {}", "License Key".bold(), lkey_formatted);
 
@@ -182,11 +199,13 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
     let mut file = File::open(file_name).expect("Failed to open main config file.");
     let mut file_contents = String::new();
 
-    file.read_to_string(&mut file_contents).expect("Failed to read main config file.");
+    file.read_to_string(&mut file_contents)
+        .expect("Failed to read main config file.");
     let lines: Vec<String> = file_contents
-                                .replace("\r", "\n")   // Replace CR newlines with LF (extra blank lines don't matter)
-                                .split("\n")           // Split on newlines
-                                .map(|s: &str| s.to_string()).collect(); // Collect as Vec<String>
+        .replace("\r", "\n") // Replace CR newlines with LF (extra blank lines don't matter)
+        .split("\n") // Split on newlines
+        .map(|s: &str| s.to_string())
+        .collect(); // Collect as Vec<String>
 
     for line in lines {
         if line.starts_with("#") {
@@ -211,10 +230,22 @@ fn parse_file(config: &mut FivemConfig, file_name: &str) -> Result<(), &'static 
                 }
             }
             "set" => {
-                config.convars.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
+                config.convars.insert(
+                    parts[1].clone(),
+                    parts.get(2).unwrap_or(&String::new()).clone(),
+                );
+            }
+            "sets" => {
+                config.convars.insert(
+                    parts[1].clone(),
+                    parts.get(2).unwrap_or(&String::new()).clone(),
+                );
             }
             "setr" => {
-                config.convars_replicated.insert(parts[1].clone(), parts.get(2).unwrap_or(&String::new()).clone());
+                config.convars_replicated.insert(
+                    parts[1].clone(),
+                    parts.get(2).unwrap_or(&String::new()).clone(),
+                );
             }
             "sv_scriptHookAllowed" => {
                 config.allow_scripthook = parts[1] == "1";
